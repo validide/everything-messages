@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>EverythingMessages.Contracts</AssemblyName>
+    <RootNamespace>EverythingMessages.Contracts</RootNamespace>
+  </PropertyGroup>
+
+</Project>
