@@ -9,5 +9,5 @@ docker-compose build
 docker-compose up
 
 # open http://localhost:15672/#/
-# open http://localhost:7000/appstate
+# open http://localhost:7000/swagger/index.html
 ```
