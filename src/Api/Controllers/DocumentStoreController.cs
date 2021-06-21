@@ -47,7 +47,7 @@ namespace EverythingMessages.Api.Controllers
             s_random.NextBytes(data);
 
             var id = await _store.StoreAsync(data, CancellationToken.None).ConfigureAwait(false);
-            _logger.LogDebug("Created document {id}", id);
+            _logger.LogInformation("Created document {id}", id);
             return Accepted(Url.Action("GET", "DocumentStore", new { id }));
         }
 

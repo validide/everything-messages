@@ -13,14 +13,27 @@ services:
       - "7000:80"
 
   http-endpoint:
-    image: everything-messages/http-endpoint
+    image: everything-messages/http-endpoint:latest
     build:
       context: ./src
       dockerfile: ./Api/Dockerfile
     restart: always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-    scale: 2 # just so we hit different machines :D
+    scale: 2 # just so we have multiple
+    depends_on:
+      - message-broker
+      - document-store
+
+  worker-endpoint:
+    image: everything-messages/worker-endpoint:latest
+    build:
+      context: ./src
+      dockerfile: ./BackgroundWorkers/Dockerfile
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    scale: 2 # just so we have multiple
     depends_on:
       - message-broker
       - document-store

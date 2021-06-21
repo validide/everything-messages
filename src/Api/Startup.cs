@@ -1,5 +1,6 @@
 ﻿using System;
 using EverythingMessages.Api.Infrastructure.DocumentStore;
+using EverythingMessages.Components.Orders;
 using EverythingMessages.Contracts.Orders;
 using MassTransit;
 using MassTransit.Definition;
@@ -38,8 +39,7 @@ namespace EverythingMessages.Api
             {
                 mt.UsingRabbitMq((_, cfg) => cfg.Host(messageBrokerHost, "em"));
 
-                // mt.AddRequestClient<SubmitOrder>(new Uri($"queue:{nameFormatter.Consumer<SubmitOrderConsumer>()}"));
-                mt.AddRequestClient<SubmitOrder>();
+                mt.AddRequestClient<SubmitOrder>(new Uri($"queue:{nameFormatter.Consumer<SubmitOrderConsumer>()}"));
                 mt.AddRequestClient<CheckOrder>();
             });
 
