@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using EverythingMessages.Contracts.Orders;
 using EverythingMessages.Infrastructure.DocumentStore;
@@ -23,7 +22,7 @@ namespace EverythingMessages.Components.Orders
         {
             _logger.Log(LogLevel.Information, "SubmitOrderConsumer: {Id}", context.Message.Id);
 
-            var orderData = await _documentStore.GetAsync(context.Message.Id, CancellationToken.None).ConfigureAwait(false);
+            var orderData = await _documentStore.GetAsync(context.Message.Id, context.CancellationToken).ConfigureAwait(false);
             _logger.Log(LogLevel.Information, "Processing order data: {Data}", orderData);
 
             await Task.Delay(TimeSpan.FromSeconds(7)).ConfigureAwait(false);
@@ -62,7 +61,7 @@ namespace EverythingMessages.Components.Orders
 
             try
             {
-                await _documentStore.RemoveAsync(context.Message.Id, CancellationToken.None).ConfigureAwait(false);
+                await _documentStore.RemoveAsync(context.Message.Id, context.CancellationToken).ConfigureAwait(false);
                 _logger.Log(LogLevel.Information, "Removed order data: {Id}", context.Message.Id);
             }
             catch (Exception e)

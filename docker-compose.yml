@@ -38,6 +38,19 @@ services:
       - message-broker
       - document-store
 
+  auditing-endpoint:
+    image: everything-messages/auditing-endpoint:latest
+    build:
+      context: ./src
+      dockerfile: ./BackgroundAuditor/Dockerfile
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    scale: 5 # just so we have multiple
+    depends_on:
+      - message-broker
+      - document-store
+
   message-broker:
     image: rabbitmq:3.8.17-management-alpine
     healthcheck:

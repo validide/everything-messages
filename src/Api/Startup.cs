@@ -39,7 +39,8 @@ namespace EverythingMessages.Api
             {
                 mt.UsingRabbitMq((_, cfg) => cfg.Host(messageBrokerHost, "em"));
 
-                mt.AddRequestClient<SubmitOrder>(new Uri($"queue:{nameFormatter.Consumer<SubmitOrderConsumer>()}"));
+                // mt.AddRequestClient<SubmitOrder>(new Uri($"queue:{nameFormatter.Consumer<SubmitOrderConsumer>()}"));
+                mt.AddRequestClient<SubmitOrder>();
                 mt.AddRequestClient<CheckOrder>();
             });
 
