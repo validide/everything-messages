@@ -6,17 +6,17 @@ using MassTransit.Definition;
 
 namespace EverythingMessages.Components.Auditing
 {
-    public class SubmitOrderAuditConsumerDefinition : ConsumerDefinition<SubmitOrderAuditConsumer>
+    public class OrderAuditConsumerDefinition : ConsumerDefinition<OrderAuditConsumer>
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public SubmitOrderAuditConsumerDefinition(IServiceProvider serviceProvider)
+        public OrderAuditConsumerDefinition(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
             ConcurrentMessageLimit = 2;
         }
 
-        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<SubmitOrderAuditConsumer> consumerConfigurator)
+        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<OrderAuditConsumer> consumerConfigurator)
         {
             endpointConfigurator.UseMessageRetry(r => r.Interval(3, 1000));
             endpointConfigurator.UseServiceScope(_serviceProvider);

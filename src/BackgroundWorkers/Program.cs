@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using EverythingMessages.Infrastructure.DocumentStore;
 using EverythingMessages.BackgroundWorkers;
 using EverythingMessages.Components.Orders;
+using EverythingMessages.Infrastructure;
 
 namespace EverythingMessages.Api
 {
@@ -47,8 +48,8 @@ namespace EverythingMessages.Api
                     services.TryAddSingleton(nameFormatter);
                     services.AddMassTransit(mt =>
                     {
-                        mt.AddConsumer<SubmitOrderConsumer>();
-                        mt.AddConsumer<OrderSubmittedConsumer>();
+                        mt.AddConsumer<SubmitOrderConsumer, SubmitOrderConsumerDefinition>();
+                        mt.AddConsumer<OrderSubmittedConsumer, OrderSubmittedConsumerDefinition>();
 
                         mt.UsingRabbitMq((ctx, cfg) =>
                         {
@@ -56,6 +57,8 @@ namespace EverythingMessages.Api
                             cfg.ConfigureEndpoints(ctx);
                         });
                     });
+
+                    services.AddSingleton(new EndpointConfigurationOptions { Name = "worker" });
                     services.AddSingleton(new MongoDocumentStore.MongoDocumentStoreOptions
                     {
                         Collection = "message-data",

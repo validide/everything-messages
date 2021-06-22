@@ -1,7 +1,9 @@
 ﻿using System;
 using EverythingMessages.Api.Infrastructure.DocumentStore;
+using EverythingMessages.Components.Notifications;
 using EverythingMessages.Components.Orders;
 using EverythingMessages.Contracts.Orders;
+using EverythingMessages.Infrastructure;
 using MassTransit;
 using MassTransit.Definition;
 using Microsoft.AspNetCore.Builder;
@@ -37,11 +39,16 @@ namespace EverythingMessages.Api
             services.TryAddSingleton(nameFormatter);
             services.AddMassTransit(mt =>
             {
-                mt.UsingRabbitMq((_, cfg) => cfg.Host(messageBrokerHost, "em"));
+                mt.UsingRabbitMq((ctx, cfg) =>
+                {
+                    cfg.Host(messageBrokerHost, "em");
+                    cfg.ConfigureEndpoints(ctx);
+                });
 
                 // mt.AddRequestClient<SubmitOrder>(new Uri($"queue:{nameFormatter.Consumer<SubmitOrderConsumer>()}"));
                 mt.AddRequestClient<SubmitOrder>();
                 mt.AddRequestClient<CheckOrder>();
+                mt.AddConsumer<OrderNotificationsConsumer, OrderNotificationsConsumerDefinition>();
             });
 
             services.Configure<HealthCheckPublisherOptions>(options =>
@@ -55,6 +62,7 @@ namespace EverythingMessages.Api
             services
                 .AddControllers()
                 .Services
+                .AddSingleton(new EndpointConfigurationOptions { Name = "api" })
                 .AddSingleton(new MongoDocumentStore.MongoDocumentStoreOptions
                 {
                     Collection = "message-data",

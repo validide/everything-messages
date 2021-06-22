@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using EverythingMessages.Infrastructure.DocumentStore;
 using EverythingMessages.Components.Auditing;
+using EverythingMessages.Infrastructure;
 
 namespace EverythingMessages.BackgroundAuditor
 {
@@ -46,7 +47,7 @@ namespace EverythingMessages.BackgroundAuditor
                     services.TryAddSingleton(nameFormatter);
                     services.AddMassTransit(mt =>
                     {
-                        mt.AddConsumer<SubmitOrderAuditConsumer>();
+                        mt.AddConsumer<OrderAuditConsumer, OrderAuditConsumerDefinition>();
 
                         mt.UsingRabbitMq((ctx, cfg) =>
                         {
@@ -54,6 +55,8 @@ namespace EverythingMessages.BackgroundAuditor
                             cfg.ConfigureEndpoints(ctx);
                         });
                     });
+
+                    services.AddSingleton(new EndpointConfigurationOptions { Name = "auditor" });
                     services.AddSingleton(new MongoDocumentStore.MongoDocumentStoreOptions
                     {
                         Collection = "message-data",
