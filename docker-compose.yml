@@ -70,4 +70,3 @@ services:
     image: mongo:4.4.6
     ports:
       - "27017-27019:27017-27019"
-

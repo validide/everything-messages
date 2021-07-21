@@ -51,7 +51,7 @@ namespace EverythingMessages.BackgroundAuditor
 
                         mt.UsingRabbitMq((ctx, cfg) =>
                         {
-                            cfg.Host(messageBrokerHost, "em");
+                            cfg.Host(messageBrokerHost);
                             cfg.ConfigureEndpoints(ctx);
                         });
                     });
