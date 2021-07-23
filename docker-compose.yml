@@ -17,7 +17,7 @@ services:
     build:
       context: ./src
       dockerfile: ./Api/Dockerfile
-    restart: always
+    restart: unless-stopped #always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     scale: 2 # just so we have multiple
@@ -30,7 +30,7 @@ services:
     build:
       context: ./src
       dockerfile: ./BackgroundWorkers/Dockerfile
-    restart: always
+    restart: unless-stopped #always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     scale: 2 # just so we have multiple
@@ -43,7 +43,7 @@ services:
     build:
       context: ./src
       dockerfile: ./BackgroundAuditor/Dockerfile
-    restart: always
+    restart: unless-stopped #always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     scale: 5 # just so we have multiple

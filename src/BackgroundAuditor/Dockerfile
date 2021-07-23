@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
 WORKDIR /src
 COPY ["BackgroundAuditor/BackgroundAuditor.csproj", "BackgroundAuditor/"]
 COPY ["Contracts/Contracts.csproj", "Contracts/"]
@@ -12,7 +12,7 @@ RUN dotnet restore "Contracts/Contracts.csproj" \
 COPY . .
 RUN dotnet publish -c Release -o /app "BackgroundAuditor/BackgroundAuditor.csproj"
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS publish
+FROM runtime-image AS publish
 WORKDIR /app
 COPY --from=build /app ./
 ENTRYPOINT ["dotnet", "EverythingMessages.BackgroundAuditor.dll"]

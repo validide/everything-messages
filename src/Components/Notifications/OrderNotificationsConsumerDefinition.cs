@@ -16,7 +16,7 @@ namespace EverythingMessages.Components.Notifications
             ConcurrentMessageLimit = 1;
             Endpoint(e =>
             {
-                e.InstanceId = _endpointNameFormatter.SanitizeName($"{_endpointConfigurationOptions.Name}.{Guid.NewGuid():N}");
+                e.InstanceId = _endpointNameFormatter.SanitizeName($"{_endpointConfigurationOptions.Name}_{Guid.NewGuid():N}");
                 e.Temporary = true;
             });
         }
