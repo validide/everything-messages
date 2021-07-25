@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "src\Infra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundWorkers", "src\BackgroundWorkers\BackgroundWorkers.csproj", "{80F69ACA-C18C-492A-9A74-3754611C6C68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundAuditor", "src\BackgroundAuditor\BackgroundAuditor.csproj", "{4662AB97-CE2A-4EF1-9EC6-1CC39B758AC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundAuditor", "src\BackgroundAuditor\BackgroundAuditor.csproj", "{4662AB97-CE2A-4EF1-9EC6-1CC39B758AC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduler", "src\Scheduler\Scheduler.csproj", "{40782106-6A27-4BEE-BAE7-1D5F76EB54ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{4662AB97-CE2A-4EF1-9EC6-1CC39B758AC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4662AB97-CE2A-4EF1-9EC6-1CC39B758AC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4662AB97-CE2A-4EF1-9EC6-1CC39B758AC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40782106-6A27-4BEE-BAE7-1D5F76EB54ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40782106-6A27-4BEE-BAE7-1D5F76EB54ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40782106-6A27-4BEE-BAE7-1D5F76EB54ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40782106-6A27-4BEE-BAE7-1D5F76EB54ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

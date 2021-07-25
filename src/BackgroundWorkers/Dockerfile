@@ -12,7 +12,7 @@ RUN dotnet restore "Contracts/Contracts.csproj" \
 COPY . .
 RUN dotnet publish -c Release -o /app "BackgroundWorkers/BackgroundWorkers.csproj"
 
-FROM runtime-image AS publish
+FROM em-dotnet-runtime-image AS publish
 WORKDIR /app
 COPY --from=build /app ./
 ENTRYPOINT ["dotnet", "EverythingMessages.BackgroundWorkers.dll"]

@@ -9,10 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="MassTransit.AspNetCore" Version="7.2.0" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="7.2.0" />
-    <PackageReference Include="NSwag.AspNetCore" Version="13.11.3" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
+    <PackageReference Include="MassTransit.AspNetCore" Version="7.2.1" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="7.2.1" />
+    <PackageReference Include="NSwag.AspNetCore" Version="13.12.1" />
   </ItemGroup>
 
   <ItemGroup>

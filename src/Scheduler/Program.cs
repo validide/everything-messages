@@ -1,17 +1,20 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System;
+using EverythingMessages.Infrastructure;
+using EverythingMessages.Scheduler.Configuration;
+using EverythingMessages.Scheduler.Definitions;
 using MassTransit;
+using MassTransit.Definition;
+using MassTransit.QuartzIntegration;
+using MassTransit.QuartzIntegration.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Quartz.Impl;
 using Serilog;
 using Serilog.Events;
-using System;
-using MassTransit.Definition;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.DependencyInjection;
-using EverythingMessages.Infrastructure.DocumentStore;
-using EverythingMessages.Components.Auditing;
-using EverythingMessages.Infrastructure;
-using Microsoft.Extensions.Configuration;
 
-namespace EverythingMessages.BackgroundAuditor
+namespace EverythingMessages.Scheduler
 {
     internal static class Program
     {
@@ -48,28 +51,45 @@ namespace EverythingMessages.BackgroundAuditor
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddSingleton(hostContext.Configuration.Get<EndpointConfigurationOptions>());
+                    services.AddSingleton(hostContext.Configuration.GetSection("Quartz").Get<QuartzOptions>());
 
                     var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
-                    var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
                     var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
                     services.TryAddSingleton(nameFormatter);
                     services.AddMassTransit(mt =>
                     {
-                        mt.AddConsumer<OrderAuditConsumer, OrderAuditConsumerDefinition>();
+                        mt.AddConsumer<ScheduleMessageConsumer>(typeof(ScheduleMessageConsumerDefinition));
+                        mt.AddConsumer<CancelScheduledMessageConsumer>(typeof(CancelScheduledMessageConsumerDefinition));
 
                         mt.UsingRabbitMq((ctx, cfg) =>
                         {
                             cfg.Host(messageBrokerHost);
                             cfg.ConfigureEndpoints(ctx);
+
+                            cfg.ConnectBusObserver(ctx.GetRequiredService<SchedulerBusObserver>());
                         });
                     });
-                    services.AddSingleton(new MongoDocumentStore.MongoDocumentStoreOptions
+
+
+                    services.AddSingleton<QuartzConfiguration>();
+
+                    services.AddSingleton(provider =>
                     {
-                        Collection = "message-data",
-                        Database = "short-term-storage",
-                        Url = $"mongodb://{documentStoreHost}:27017"
+                        var options = provider.GetRequiredService<QuartzConfiguration>();
+                        return new InMemorySchedulerOptions
+                        {
+                            SchedulerFactory = new StdSchedulerFactory(options.Configuration),
+                            QueueName = options.Queue
+                        };
                     });
-                    services.AddScoped<IDocumentStore, MongoDocumentStore>();
+
+
+
+                    services.AddSingleton<SchedulerBusObserver>();
+                    services.AddSingleton(provider => provider.GetRequiredService<SchedulerBusObserver>().Scheduler);
+
+                    services.AddSingleton<QuartzEndpointDefinition>();
+
                     services.AddHostedService<MassTransitHostedService>();
                 });
     }

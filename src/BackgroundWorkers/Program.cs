@@ -10,6 +10,7 @@ using EverythingMessages.Infrastructure.DocumentStore;
 using EverythingMessages.BackgroundWorkers;
 using EverythingMessages.Components.Orders;
 using EverythingMessages.Infrastructure;
+using Microsoft.Extensions.Configuration;
 
 namespace EverythingMessages.Api
 {
@@ -26,6 +27,11 @@ namespace EverythingMessages.Api
 
         internal static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureHostConfiguration(configHost =>
+                {
+                    configHost.AddEnvironmentVariables(prefix: "EM_");
+                    configHost.AddCommandLine(args);
+                })
                 .UseSerilog((host, log) =>
                 {
                     if (host.HostingEnvironment.IsProduction())
@@ -40,8 +46,10 @@ namespace EverythingMessages.Api
                     log.MinimumLevel.Override("Microsoft", LogEventLevel.Warning);
                     log.WriteTo.Console();
                 })
-                .ConfigureServices(services =>
+                .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddSingleton(hostContext.Configuration.Get<EndpointConfigurationOptions>());
+
                     var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
                     var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
                     var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
@@ -58,7 +66,6 @@ namespace EverythingMessages.Api
                         });
                     });
 
-                    services.AddSingleton(new EndpointConfigurationOptions { Name = "worker" });
                     services.AddSingleton(new MongoDocumentStore.MongoDocumentStoreOptions
                     {
                         Collection = "message-data",

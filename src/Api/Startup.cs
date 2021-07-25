@@ -1,7 +1,6 @@
 ﻿using System;
 using EverythingMessages.Api.Infrastructure.DocumentStore;
 using EverythingMessages.Components.Notifications;
-using EverythingMessages.Components.Orders;
 using EverythingMessages.Contracts.Orders;
 using EverythingMessages.Infrastructure;
 using MassTransit;
@@ -33,6 +32,8 @@ namespace EverythingMessages.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(Configuration.Get<EndpointConfigurationOptions>());
+
             var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
             var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
             var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
@@ -62,7 +63,6 @@ namespace EverythingMessages.Api
             services
                 .AddControllers()
                 .Services
-                .AddSingleton(new EndpointConfigurationOptions { Name = "api" })
                 .AddSingleton(new MongoDocumentStore.MongoDocumentStoreOptions
                 {
                     Collection = "message-data",

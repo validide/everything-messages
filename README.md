@@ -3,12 +3,17 @@ A place to play around with messaging
 
 ## Setup local images
 
-Create the local runtime image
+Create the local runtime images
 ``` sh
-docker build --tag runtime-image ./src/Dockers/runtime/
-
+# DotNET runtime image
+docker build --tag em-dotnet-runtime-image ./src/Dockers/runtime/
 # Check image details
-docker run -it --rm runtime-image
+docker run -it --rm em-dotnet-runtime-image
+
+
+# Quartz.NET PostgreSQL image
+docker build --tag em-scheduler-db ./src/Dockers/quartz-net-pgsql/
+
 ```
 
 ## Starting the system.

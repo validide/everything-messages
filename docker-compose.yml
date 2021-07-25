@@ -19,7 +19,8 @@ services:
       dockerfile: ./Api/Dockerfile
     restart: unless-stopped #always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_ENVIRONMENT: Development
+      EM_Name: API
     scale: 2 # just so we have multiple
     depends_on:
       - message-broker
@@ -32,7 +33,8 @@ services:
       dockerfile: ./BackgroundWorkers/Dockerfile
     restart: unless-stopped #always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_ENVIRONMENT: Development
+      EM_Name: WORKER
     scale: 2 # just so we have multiple
     depends_on:
       - message-broker
@@ -45,11 +47,31 @@ services:
       dockerfile: ./BackgroundAuditor/Dockerfile
     restart: unless-stopped #always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_ENVIRONMENT: Development
+      EM_Name: AUDITOR
     scale: 5 # just so we have multiple
     depends_on:
       - message-broker
       - document-store
+
+  default-scheduler-endpoint:
+    image: everything-messages/scheduler-endpoint:latest
+    build:
+      context: ./src
+      dockerfile: ./Scheduler/Dockerfile
+    restart: unless-stopped #always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      EM_Name: DEFAULT_SCHEDULER
+      EM_SchedulerQueue: default_scheduler
+      EM_Quartz__InstanceName: DEFAULT_SCHEDULER
+      EM_Quartz__Provider: Npgsql
+      EM_Quartz__DriverDelegateType: Quartz.Impl.AdoJobStore.PostgreSQLDelegate, Quartz
+      EM_Quartz__ConnectionString: Server=scheduler-db-store;Port=5432;Database=quartznet_db;User Id=quartznet_u;Password=quartznet_p;
+    scale: 2 # just so we have multiple
+    depends_on:
+      - message-broker
+      - scheduler-db-store
 
   message-broker:
     image: rabbitmq:3.8.17-management-alpine
@@ -70,3 +92,12 @@ services:
     image: mongo:4.4.6
     ports:
       - "27017-27019:27017-27019"
+
+  scheduler-db-store:
+    image: em-scheduler-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: quartznet_u
+      POSTGRES_PASSWORD: quartznet_p
+      POSTGRES_DB: quartznet_db

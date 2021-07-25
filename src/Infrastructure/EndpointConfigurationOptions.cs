@@ -3,5 +3,7 @@
     public class EndpointConfigurationOptions
     {
         public string Name { get; set; }
+        public string SchedulerQueue { get; set; }
+        public int? ConcurrentMessageLimit { get; set; }
     }
 }
