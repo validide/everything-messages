@@ -1,8 +1,10 @@
 ﻿using System;
+using EverythingMessages.Infrastructure;
 using GreenPipes;
 using MassTransit;
 using MassTransit.ConsumeConfigurators;
 using MassTransit.Definition;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EverythingMessages.Components.Orders
 {
@@ -13,7 +15,7 @@ namespace EverythingMessages.Components.Orders
         public SubmitOrderConsumerDefinition(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            ConcurrentMessageLimit = 2;
+            ConcurrentMessageLimit = _serviceProvider.GetRequiredService<EndpointConfigurationOptions>().ConcurrentMessageLimit ?? 2;
         }
 
         protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<SubmitOrderConsumer> consumerConfigurator)

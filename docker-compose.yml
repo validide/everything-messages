@@ -35,6 +35,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       EM_Name: WORKER
+      EM_SchedulerQueue: default_scheduler
     scale: 2 # just so we have multiple
     depends_on:
       - message-broker

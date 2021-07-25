@@ -48,7 +48,11 @@ namespace EverythingMessages.Api
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddSingleton(hostContext.Configuration.Get<EndpointConfigurationOptions>());
+                    var epConfig = hostContext.Configuration.Get<EndpointConfigurationOptions>();
+                    services.AddSingleton(epConfig);
+                    var schedulerEndpoint = String.IsNullOrEmpty(epConfig.SchedulerQueue)
+                        ? null
+                        : new Uri($"queue:{epConfig.SchedulerQueue}");
 
                     var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
                     var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
@@ -56,6 +60,11 @@ namespace EverythingMessages.Api
                     services.TryAddSingleton(nameFormatter);
                     services.AddMassTransit(mt =>
                     {
+                        if (schedulerEndpoint != null)
+                        {
+                            mt.AddMessageScheduler(schedulerEndpoint);
+                        }
+
                         mt.AddConsumer<SubmitOrderConsumer, SubmitOrderConsumerDefinition>();
                         mt.AddConsumer<OrderSubmittedConsumer, OrderSubmittedConsumerDefinition>();
 
@@ -63,6 +72,11 @@ namespace EverythingMessages.Api
                         {
                             cfg.Host(messageBrokerHost);
                             cfg.ConfigureEndpoints(ctx);
+
+                            if (schedulerEndpoint != null)
+                            {
+                                cfg.UseMessageScheduler(schedulerEndpoint);
+                            }
                         });
                     });
 

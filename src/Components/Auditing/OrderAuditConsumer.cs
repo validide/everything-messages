@@ -18,7 +18,7 @@ namespace EverythingMessages.Components.Auditing
 
         public async Task Consume(ConsumeContext<SubmitOrder> context)
         {
-            _logger.Log(LogLevel.Information, "Auditing order: {Id}", context.Message.Id);
+            _logger.Log(LogLevel.Information, "Auditing order submission: {Id}", context.Message.Id);
 
 
             await Task.Delay(TimeSpan.FromSeconds(13)).ConfigureAwait(false);
@@ -33,7 +33,7 @@ namespace EverythingMessages.Components.Auditing
 
         public async Task Consume(ConsumeContext<OrderSubmitted> context)
         {
-            _logger.Log(LogLevel.Information, "Auditing order: {Id}", context.Message.Id);
+            _logger.Log(LogLevel.Information, "Auditing submitted order: {Id}", context.Message.Id);
 
 
             await Task.Delay(TimeSpan.FromSeconds(13)).ConfigureAwait(false);
