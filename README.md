@@ -29,3 +29,8 @@ docker-compose up
 # docker compose stop http-endpoint
 # docker compose start http-endpoint
 ```
+
+
+To try  out:
+- scheduled messaged
+- saga
