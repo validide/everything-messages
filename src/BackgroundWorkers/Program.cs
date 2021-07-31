@@ -7,10 +7,12 @@ using MassTransit.Definition;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using EverythingMessages.Infrastructure.DocumentStore;
-using EverythingMessages.BackgroundWorkers;
 using EverythingMessages.Components.Orders;
 using EverythingMessages.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using EverythingMessages.Infrastructure.MessageBus;
+using EverythingMessages.Components.Notifications;
+using EverythingMessages.BackgroundWorkers;
 
 namespace EverythingMessages.Api
 {
@@ -67,6 +69,7 @@ namespace EverythingMessages.Api
 
                         mt.AddConsumer<SubmitOrderConsumer, SubmitOrderConsumerDefinition>();
                         mt.AddConsumer<OrderSubmittedConsumer, OrderSubmittedConsumerDefinition>();
+                        mt.AddConsumer<SendEmailNotificationConsumer, SendEmailNotificationConsumerDefinition>();
 
                         mt.UsingRabbitMq((ctx, cfg) =>
                         {
@@ -88,6 +91,10 @@ namespace EverythingMessages.Api
                     });
                     services.AddScoped<IDocumentStore, MongoDocumentStore>();
                     services.AddHostedService<MassTransitHostedService>();
+                    if (epConfig.Name.Contains("SCHEDULED_MESSAGE_PRODUCER", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        services.AddHostedService<ScheduledMessagesProducerHostedService>();
+                    }
                 });
     }
 }

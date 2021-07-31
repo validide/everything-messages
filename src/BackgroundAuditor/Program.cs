@@ -10,6 +10,7 @@ using EverythingMessages.Infrastructure.DocumentStore;
 using EverythingMessages.Components.Auditing;
 using EverythingMessages.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using EverythingMessages.Infrastructure.MessageBus;
 
 namespace EverythingMessages.BackgroundAuditor
 {

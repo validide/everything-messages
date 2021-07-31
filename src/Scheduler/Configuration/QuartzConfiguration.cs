@@ -35,6 +35,7 @@ namespace EverythingMessages.Scheduler.Configuration
         public string Queue { get; }
 
         public int ConcurrentMessageLimit => _endpointOptions.ConcurrentMessageLimit ?? 16;
+        private int MaxConcurrency => _options.ThreadCount ?? 10;
 
         public NameValueCollection Configuration
         {
@@ -46,17 +47,29 @@ namespace EverythingMessages.Scheduler.Configuration
                     {"quartz.scheduler.instanceId", "AUTO"},
                     {"quartz.plugin.timeZoneConverter.type", "Quartz.Plugin.TimeZoneConverter.TimeZoneConverterPlugin, Quartz.Plugins.TimeZoneConverter"},
                     {"quartz.serializer.type", "json"},
-                    {"quartz.threadPool.maxConcurrency", (_options.ThreadCount ?? (ConcurrentMessageLimit * 2)).ToString("F0")},
-                    {"quartz.jobStore.misfireThreshold", "60000"},
-                    {"quartz.jobStore.type", "Quartz.Impl.AdoJobStore.JobStoreTX, Quartz"},
+                    {"quartz.threadPool.maxConcurrency", MaxConcurrency.ToString("F0")},
+                    {"quartz.jobStore.misfireThreshold", "30000"},
+                    {"quartz.jobStore.maxMisfiresToHandleAtATime", (MaxConcurrency / 2).ToString("F0")},
                     {"quartz.jobStore.driverDelegateType", _options.DriverDelegateType},
                     {"quartz.jobStore.tablePrefix", _options.TablePrefix ?? "QRTZ_"},
-                    {"quartz.jobStore.dataSource", "default"},
                     {"quartz.jobStore.clustered", $"{_options.Clustered ?? true}"},
+                    {"quartz.jobStore.type", "Quartz.Impl.AdoJobStore.JobStoreTX, Quartz"},
+                    {"quartz.jobStore.useProperties", "true"},
+                    {"quartz.jobStore.dataSource", "default"},
                     {"quartz.dataSource.default.provider", _options.Provider},
-                    {"quartz.dataSource.default.connectionString", _options.ConnectionString},
-                    {"quartz.jobStore.useProperties", "true"}
+                    {"quartz.dataSource.default.connectionString", _options.ConnectionString}
                 };
+
+                if (_options.EnableBatching)
+                {
+                    configuration.Add(new NameValueCollection()
+                    {
+
+                        {"quartz.jobStore.acquireTriggersWithinLock", "true"},
+                        {"quartz.scheduler.batchTriggerAcquisitionMaxCount", _options.BatchSize.ToString("F0")},
+                        {"quartz.scheduler.batchTriggerAcquisitionFireAheadTimeWindow", _options.BatchHasten.ToString("F0")}
+                    });
+                }
 
                 if (_logger.IsEnabled(LogLevel.Information))
                 {

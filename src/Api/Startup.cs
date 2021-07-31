@@ -32,7 +32,8 @@ namespace EverythingMessages.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(Configuration.Get<EndpointConfigurationOptions>());
+            var epOptions = Configuration.Get<EndpointConfigurationOptions>();
+            services.AddSingleton(epOptions);
 
             var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
             var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
@@ -58,7 +59,7 @@ namespace EverythingMessages.Api
                 options.Predicate = check => check.Tags.Contains("ready");
             });
 
-            services.AddMassTransitHostedService();
+            services.AddMassTransitHostedService(epOptions.WaitBusStart);
 
             services
                 .AddControllers()

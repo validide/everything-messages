@@ -1,5 +1,6 @@
 ﻿using System;
 using EverythingMessages.Infrastructure;
+using EverythingMessages.Infrastructure.MessageBus;
 using EverythingMessages.Scheduler.Configuration;
 using EverythingMessages.Scheduler.Definitions;
 using MassTransit;
@@ -58,11 +59,12 @@ namespace EverythingMessages.Scheduler
                     services.TryAddSingleton(nameFormatter);
                     services.AddMassTransit(mt =>
                     {
-                        mt.AddConsumer<ScheduleMessageConsumer>(typeof(ScheduleMessageConsumerDefinition));
-                        mt.AddConsumer<CancelScheduledMessageConsumer>(typeof(CancelScheduledMessageConsumerDefinition));
+                        mt.AddConsumer<ScheduleMessageConsumer, ScheduleMessageConsumerDefinition>();
+                        mt.AddConsumer<CancelScheduledMessageConsumer, CancelScheduledMessageConsumerDefinition>();
 
                         mt.UsingRabbitMq((ctx, cfg) =>
                         {
+
                             cfg.Host(messageBrokerHost);
                             cfg.ConfigureEndpoints(ctx);
 

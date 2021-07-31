@@ -28,6 +28,7 @@ docker-compose up
 
 # docker compose stop http-endpoint
 # docker compose start http-endpoint
+# docker compose up --scale default-scheduler-endpoint=2 -d
 ```
 
 

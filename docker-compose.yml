@@ -21,6 +21,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       EM_Name: API
+      EM_WaitBusStart: 'true'
     scale: 2 # just so we have multiple
     depends_on:
       - message-broker
@@ -34,8 +35,9 @@ services:
     restart: unless-stopped #always
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      EM_Name: WORKER
+      EM_Name: WORKER_SCHEDULED_MESSAGE_PRODUCER
       EM_SchedulerQueue: default_scheduler
+      EM_WaitBusStart: 'true'
     scale: 2 # just so we have multiple
     depends_on:
       - message-broker
@@ -50,6 +52,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       EM_Name: AUDITOR
+      EM_WaitBusStart: 'true'
     scale: 5 # just so we have multiple
     depends_on:
       - message-broker
@@ -65,14 +68,21 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       EM_Name: DEFAULT_SCHEDULER
       EM_SchedulerQueue: default_scheduler
+      EM_ConcurrentMessageLimit: 100
+      EM_WaitBusStart: 'true'
       EM_Quartz__InstanceName: DEFAULT_SCHEDULER
       EM_Quartz__Provider: Npgsql
       EM_Quartz__DriverDelegateType: Quartz.Impl.AdoJobStore.PostgreSQLDelegate, Quartz
-      EM_Quartz__ConnectionString: Server=scheduler-db-store;Port=5432;Database=quartznet_db;User Id=quartznet_u;Password=quartznet_p;
+      #EM_Quartz__ConnectionString: Server=scheduler-db-store;Port=5432;Database=quartznet_db;User Id=quartznet_u;Password=quartznet_p;
+      EM_Quartz__ConnectionString: Server=scheduler-db-store-proxy;Port=6432;Database=postgres;User Id=quartznet_u;Password=quartznet_p;
+      EM_Quartz__EnableBatching: 'true'
+      EM_Quartz__ThreadCount: 75
+      EM_Quartz__BatchSize: 200
+      EM_Quartz__BatchHasten: 1000
     scale: 2 # just so we have multiple
     depends_on:
       - message-broker
-      - scheduler-db-store
+      - scheduler-db-store-proxy
 
   message-broker:
     image: rabbitmq:3.8.17-management-alpine
@@ -102,3 +112,20 @@ services:
       POSTGRES_USER: quartznet_u
       POSTGRES_PASSWORD: quartznet_p
       POSTGRES_DB: quartznet_db
+
+
+  scheduler-db-store-proxy:
+    image: bitnami/pgbouncer:1.15.0
+    ports:
+      - "6432:6432"
+    environment:
+      POSTGRESQL_USERNAME: quartznet_u
+      POSTGRESQL_PASSWORD: quartznet_p
+      POSTGRESQL_DATABASE: quartznet_db
+      POSTGRESQL_HOST: scheduler-db-store
+      POSTGRESQL_PORT: 5432
+      PGBOUNCER_IGNORE_STARTUP_PARAMETERS: extra_float_digits
+    depends_on:
+        - scheduler-db-store
+    logging: # comment this section to see PG_BOUNCER logs
+      driver: none
