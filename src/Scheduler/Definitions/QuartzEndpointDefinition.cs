@@ -1,7 +1,7 @@
 ﻿using EverythingMessages.Scheduler.Configuration;
+using EverythingMessages.Scheduler.Quartz;
 using GreenPipes.Partitioning;
 using MassTransit;
-using MassTransit.QuartzIntegration;
 
 namespace EverythingMessages.Scheduler.Definitions
 {

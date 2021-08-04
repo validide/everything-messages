@@ -41,10 +41,11 @@ namespace EverythingMessages.Scheduler.Configuration
         {
             get
             {
+                var instanceName = _options.InstanceName ?? "MassTransit-Scheduler";
                 var configuration = new NameValueCollection()
                 {
-                    {"quartz.scheduler.instanceName", _options.InstanceName ?? "MassTransit-Scheduler"},
-                    {"quartz.scheduler.instanceId", "AUTO"},
+                    {"quartz.scheduler.instanceName", instanceName},
+                    {"quartz.scheduler.instanceId", $"{instanceName}-{Guid.NewGuid():N}"},
                     {"quartz.plugin.timeZoneConverter.type", "Quartz.Plugin.TimeZoneConverter.TimeZoneConverterPlugin, Quartz.Plugins.TimeZoneConverter"},
                     {"quartz.serializer.type", "json"},
                     {"quartz.threadPool.maxConcurrency", MaxConcurrency.ToString("F0")},
