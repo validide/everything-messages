@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Quartz.Impl;
 using Quartz.Simpl;
 using Serilog;
 using Serilog.Events;
@@ -78,21 +77,13 @@ namespace EverythingMessages.Scheduler
 
                     services.AddSingleton<QuartzConfiguration>();
 
-                    services.AddSingleton(new SchedulerOptions
-                    {
-                        PartitionCount = 16 // TODO: Move this configuration
-                    });
-
-                    services.AddSingleton<ISchedulerRepository>(s =>
-                    {
-                        return new ParitionedSchedulerRepository(
-                            s.GetRequiredService<SchedulerOptions>(),
-                            s.GetRequiredService<QuartzConfiguration>(),
-                            new PropertySettingJobFactory(),
-                            new Murmur3UnsafeHashGenerator(),
-                            s.GetRequiredService<ILoggerFactory>()
-                        );
-                    });
+                    services.AddSingleton<ISchedulerRepository>(s => new ParitionedSchedulerRepository(
+                        s.GetRequiredService<QuartzOptions>(),
+                        s.GetRequiredService<QuartzConfiguration>(),
+                        new PropertySettingJobFactory(),
+                        new Murmur3UnsafeHashGenerator(),
+                        s.GetRequiredService<ILoggerFactory>()
+                    ));
 
 
                     services.AddSingleton<SchedulerBusObserver>();

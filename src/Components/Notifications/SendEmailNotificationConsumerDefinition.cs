@@ -9,7 +9,7 @@ namespace EverythingMessages.Components.Notifications
         public SendEmailNotificationConsumerDefinition(EndpointConfigurationOptions endpointConfigurationOptions)
         {
             _endpointConfigurationOptions = endpointConfigurationOptions;
-            ConcurrentMessageLimit = (_endpointConfigurationOptions.ConcurrentMessageLimit ?? 1) * 20;
+            ConcurrentMessageLimit = (_endpointConfigurationOptions.ConcurrentMessageLimit ?? 1) * 50;
         }
     }
 }

@@ -71,6 +71,7 @@ services:
       EM_ConcurrentMessageLimit: 100
       EM_WaitBusStart: 'true'
       EM_Quartz__InstanceName: DEFAULT_SCHEDULER
+      EM_Quartz__PartitionCount: 8
       EM_Quartz__Provider: Npgsql
       EM_Quartz__DriverDelegateType: Quartz.Impl.AdoJobStore.PostgreSQLDelegate, Quartz
       EM_Quartz__ConnectionString: Server=scheduler-db-store;Port=5432;Database=quartznet_db;User Id=quartznet_u;Password=quartznet_p;Maximum Pool Size=1000;Timeout=30

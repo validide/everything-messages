@@ -32,7 +32,7 @@ namespace EverythingMessages.Scheduler.Quartz
                 var destinationAddress = new Uri(Destination);
                 var sourceAddress = _bus.Address;
 
-                IPipe<SendContext> sendPipe = CreateMessageContext(sourceAddress);
+                var sendPipe = CreateMessageContext(sourceAddress);
 
                 var endpoint = await _bus.GetSendEndpoint(destinationAddress).ConfigureAwait(false);
 

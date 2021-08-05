@@ -15,7 +15,7 @@ namespace EverythingMessages.Components.Notifications
 
         public Task Consume(ConsumeContext<SendEmailNotification> context)
         {
-            if (context.Message.EmailAddress.StartsWith(_rng.Next(1, 1000).ToString("F0"), StringComparison.InvariantCultureIgnoreCase))
+            if (context.Message.EmailAddress.StartsWith(_rng.Next(1, 10000).ToString("F0"), StringComparison.InvariantCultureIgnoreCase))
             {
                 _logger.LogInformation($"[{DateTime.UtcNow:O}] Sending e-mail notification: {context.Message.Body}");
             }

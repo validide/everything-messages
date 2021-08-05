@@ -12,15 +12,13 @@ namespace EverythingMessages.Scheduler.Quartz
         IConsumer<CancelScheduledMessage>,
         IConsumer<CancelScheduledRecurringMessage>
     {
-        private readonly SchedulerOptions _schedulerOptions;
         private readonly SchedulerBusObserver _schedulerBusObserver;
         private readonly ILogger<CancelScheduledMessageConsumer> _logger;
 
-        public CancelScheduledMessageConsumer(SchedulerBusObserver schedulerBusObserver, ILogger<CancelScheduledMessageConsumer> logger, SchedulerOptions schedulerOptions)
+        public CancelScheduledMessageConsumer(SchedulerBusObserver schedulerBusObserver, ILogger<CancelScheduledMessageConsumer> logger)
         {
             _schedulerBusObserver = schedulerBusObserver;
             _logger = logger;
-            _schedulerOptions = schedulerOptions;
         }
 
         public async Task Consume(ConsumeContext<CancelScheduledMessage> context)
@@ -45,8 +43,8 @@ namespace EverythingMessages.Scheduler.Quartz
             var scheduleId = context.Message.ScheduleId;
             var scheduleGroup = context.Message.ScheduleGroup;
 
-            if (!scheduleId.StartsWith(_schedulerOptions.RecurringTriggerPrefix))
-                scheduleId = String.Concat(_schedulerOptions.RecurringTriggerPrefix, scheduleId);
+            if (!scheduleId.StartsWith(SchedulerConstants.RecurringTriggerPrefix))
+                scheduleId = String.Concat(SchedulerConstants.RecurringTriggerPrefix, scheduleId);
 
             var scheduler = (await _schedulerBusObserver.GetSchedulerRepository().ConfigureAwait(false))
                 .GetScheduler(String.Concat(scheduleId, scheduleGroup));

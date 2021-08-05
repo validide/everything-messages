@@ -67,7 +67,7 @@ namespace EverythingMessages.Scheduler.Quartz
         {
             foreach (var key in jobData.Keys)
             {
-                if (TypeCache<ScheduledMessageJob>.ReadWritePropertyCache.TryGetProperty(key, out ReadWriteProperty<ScheduledMessageJob> property))
+                if (TypeCache<ScheduledMessageJob>.ReadWritePropertyCache.TryGetProperty(key, out var property))
                 {
                     var value = jobData[key];
 

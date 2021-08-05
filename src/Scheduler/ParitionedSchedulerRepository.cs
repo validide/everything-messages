@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.Threading.Tasks;
 using EverythingMessages.Scheduler.Configuration;
 using EverythingMessages.Scheduler.Quartz;
@@ -14,7 +13,7 @@ namespace EverythingMessages.Scheduler
 {
     public class ParitionedSchedulerRepository : ISchedulerRepository
     {
-        private readonly SchedulerOptions _schedulerOptions;
+        private readonly QuartzOptions _schedulerOptions;
         private readonly QuartzConfiguration _quartzConfiguration;
         private readonly IJobFactory _jobFactory;
         private readonly IHashGenerator _hashGenerator;
@@ -23,7 +22,7 @@ namespace EverythingMessages.Scheduler
         private readonly IScheduler[] _schedulers;
 
         public ParitionedSchedulerRepository(
-            SchedulerOptions schedulerOptions,
+            QuartzOptions schedulerOptions,
             QuartzConfiguration quartzConfiguration,
             IJobFactory jobFactory,
             IHashGenerator hashGenerator,
@@ -40,7 +39,7 @@ namespace EverythingMessages.Scheduler
         }
         public string InstanceId => _schedulers[0]?.SchedulerInstanceId ?? String.Empty;
 
-        public string PartitionGroup => _schedulerOptions.PartitionGroup;
+        public string PartitionGroup => _schedulerOptions.InstanceName;
 
         public uint PartitionCount => _schedulerOptions.PartitionCount;
 
@@ -63,10 +62,10 @@ namespace EverythingMessages.Scheduler
         }
         public async Task StartAsync(IBus bus)
         {
-            for (int i = 0; i < _schedulers.Length; i++)
+            for (var i = 0; i < _schedulers.Length; i++)
             {
                 var cfg = _quartzConfiguration.Configuration;
-                cfg["quartz.scheduler.instanceName"] += $"__{i:00000000.##}";
+                cfg["quartz.scheduler.instanceName"] += $"__{i:0000.##}";
                 var schedulerFactory = new StdSchedulerFactory(cfg);
                 _schedulerFactories[i] = schedulerFactory;
 

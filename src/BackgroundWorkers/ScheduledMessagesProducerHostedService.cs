@@ -19,7 +19,7 @@ namespace EverythingMessages.BackgroundWorkers
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dueDate = DateTime.UtcNow.AddSeconds(10);
-                foreach (var customerId in Enumerable.Range(1, 1000))
+                foreach (var customerId in Enumerable.Range(1, 5000))
                 {
                     await _messageScheduler.SchedulePublish(
                         dueDate,

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,15 +18,13 @@ namespace EverythingMessages.Scheduler.Quartz
         IConsumer<ScheduleMessage>,
         IConsumer<ScheduleRecurringMessage>
     {
-        private readonly SchedulerOptions _schedulerOptions;
         private readonly SchedulerBusObserver _schedulerBusObserver;
         private readonly ILogger<ScheduleMessageConsumer> _logger;
 
-        public ScheduleMessageConsumer(SchedulerBusObserver schedulerBusObserver, ILogger<ScheduleMessageConsumer> logger, SchedulerOptions schedulerOptions)
+        public ScheduleMessageConsumer(SchedulerBusObserver schedulerBusObserver, ILogger<ScheduleMessageConsumer> logger)
         {
             _schedulerBusObserver = schedulerBusObserver;
             _logger = logger;
-            _schedulerOptions = schedulerOptions;
         }
 
         public async Task Consume(ConsumeContext<ScheduleMessage> context)
@@ -65,7 +62,7 @@ namespace EverythingMessages.Scheduler.Quartz
 
             var jobDetail = CreateJobDetail(context, context.Message.Destination, jobKey);
 
-            var triggerKey = new TriggerKey(String.Concat(_schedulerOptions.RecurringTriggerPrefix, scheduleId), scheduleGroup);
+            var triggerKey = new TriggerKey(String.Concat(SchedulerConstants.RecurringTriggerPrefix, scheduleId), scheduleGroup);
 
             var trigger = CreateTrigger(context.Message.Schedule, jobDetail, triggerKey);
 
@@ -153,7 +150,7 @@ namespace EverythingMessages.Scheduler.Quartz
             if (tokenId.HasValue)
                 builder = builder.UsingJobData("TokenId", tokenId.Value.ToString("N"));
 
-            IEnumerable<KeyValuePair<string, object>> headers = context.Headers.GetAll();
+            var headers = context.Headers.GetAll();
             if (headers.Any())
                 builder = builder.UsingJobData("HeadersAsJson", JsonConvert.SerializeObject(headers));
 

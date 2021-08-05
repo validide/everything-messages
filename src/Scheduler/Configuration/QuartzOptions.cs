@@ -9,6 +9,7 @@
         public string TablePrefix { get; set; }
         public bool? Clustered { get; set; }
         public string DriverDelegateType { get; set; }
+        public uint PartitionCount { get; set; } = 1;
         /// <summary>
         /// Should the triggers be processed in batches?
         /// </summary>
