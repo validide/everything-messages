@@ -35,7 +35,7 @@ services:
     restart: unless-stopped #always
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      EM_Name: WORKER_SCHEDULED_MESSAGE_PRODUCER
+      EM_Name: WORKER #_SCHEDULED_MESSAGE_PRODUCER
       EM_SchedulerQueue: default_scheduler
       EM_WaitBusStart: 'true'
     scale: 2 # just so we have multiple
@@ -71,15 +71,15 @@ services:
       EM_ConcurrentMessageLimit: 100
       EM_WaitBusStart: 'true'
       EM_Quartz__InstanceName: DEFAULT_SCHEDULER
-      EM_Quartz__PartitionCount: 8
+      EM_Quartz__PartitionCount: 16
       EM_Quartz__Provider: Npgsql
       EM_Quartz__DriverDelegateType: Quartz.Impl.AdoJobStore.PostgreSQLDelegate, Quartz
       EM_Quartz__ConnectionString: Server=scheduler-db-store;Port=5432;Database=quartznet_db;User Id=quartznet_u;Password=quartznet_p;Maximum Pool Size=1000;Timeout=30
-      EM_Quartz__ThreadCount: 100
+      EM_Quartz__ThreadCount: 50
       EM_Quartz__EnableBatching: 'false'
       EM_Quartz__BatchSize: 200
       EM_Quartz__BatchHasten: 1000
-    scale: 2 # just so we have multiple
+    scale: 5 # just so we have multiple
     depends_on:
       - message-broker
       - scheduler-db-store

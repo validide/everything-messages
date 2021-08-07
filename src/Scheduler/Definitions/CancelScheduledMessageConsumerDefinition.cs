@@ -22,11 +22,11 @@ namespace EverythingMessages.Scheduler.Definitions
             IConsumerConfigurator<CancelScheduledMessageConsumer> consumerConfigurator)
         {
             consumerConfigurator.Message<CancelScheduledMessage>(m => m.UsePartitioner(_endpointDefinition.Partition, p => p.Message.TokenId));
-            //endpointConfigurator.ConcurrentMessageLimit = _endpointDefinition.ConcurrentMessageLimit;
-            //if (_endpointDefinition.PrefetchCount != null)
-            //{
-            //    endpointConfigurator.PrefetchCount = _endpointDefinition.PrefetchCount.Value;
-            //}
+            endpointConfigurator.ConcurrentMessageLimit = _endpointDefinition.ConcurrentMessageLimit;
+            if (_endpointDefinition.PrefetchCount != null)
+            {
+                endpointConfigurator.PrefetchCount = _endpointDefinition.PrefetchCount.Value;
+            }
         }
     }
 }

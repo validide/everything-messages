@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EverythingMessages.Contracts.Notifications;
+using EverythingMessages.Infrastructure.ExtensionMethods;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
 
@@ -12,25 +13,29 @@ namespace EverythingMessages.BackgroundWorkers
     {
         private readonly IMessageScheduler _messageScheduler;
 
-        public ScheduledMessagesProducerHostedService(IMessageScheduler messageScheduler) => _messageScheduler = messageScheduler;
+        public ScheduledMessagesProducerHostedService(IMessageScheduler messageScheduler)
+        {
+            _messageScheduler = messageScheduler;
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Wait for the queue to start
+            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken).ConfigureAwait(false);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 var dueDate = DateTime.UtcNow.AddSeconds(10);
-                foreach (var customerId in Enumerable.Range(1, 5000))
-                {
-                    await _messageScheduler.SchedulePublish(
+                await Enumerable.Range(1, 1000).ParallelForEachAsync((id, ct) =>
+                    _messageScheduler.SchedulePublish(
                         dueDate,
                         new SendEmailNotification
                         {
-                            EmailAddress = $"{customerId}@example.com",
-                            Body = $"Message for {customerId}@example.com at {dueDate:O}"
+                            EmailAddress = $"{id}@example.com",
+                            Body = $"Message for {id}@example.com at {dueDate:O}"
                         },
-                        stoppingToken
-                    ).ConfigureAwait(false);
-                }
+                        ct)
+                    ,Environment.ProcessorCount * 8, stoppingToken).ConfigureAwait(false);
 
                 await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
             }
