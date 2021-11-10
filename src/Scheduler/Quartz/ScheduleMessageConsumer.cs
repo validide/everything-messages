@@ -14,10 +14,13 @@ using Quartz.Util;
 
 namespace EverythingMessages.Scheduler.Quartz
 {
-    public class ScheduleMessageConsumer :
+    public partial class ScheduleMessageConsumer :
         IConsumer<ScheduleMessage>,
         IConsumer<ScheduleRecurringMessage>
     {
+        [LoggerMessage(0, LogLevel.Debug, "Scheduled: {Key} {Schedule}")]
+        private static partial void LogJobScheduled(ILogger logger, JobKey key, DateTimeOffset? schedule);
+
         private readonly SchedulerBusObserver _schedulerBusObserver;
         private readonly ILogger<ScheduleMessageConsumer> _logger;
 
@@ -51,7 +54,7 @@ namespace EverythingMessages.Scheduler.Quartz
 
             await scheduler.ScheduleJob(jobDetail, trigger, context.CancellationToken).ConfigureAwait(false);
 
-            _logger.LogDebug("Scheduled: {Key} {Schedule}", jobKey, trigger.GetNextFireTimeUtc());
+            LogJobScheduled(_logger, jobKey, trigger.GetNextFireTimeUtc());
         }
 
         public async Task Consume(ConsumeContext<ScheduleRecurringMessage> context)
@@ -74,7 +77,7 @@ namespace EverythingMessages.Scheduler.Quartz
 
             await scheduler.ScheduleJob(jobDetail, trigger, context.CancellationToken).ConfigureAwait(false);
 
-            _logger.LogDebug("Scheduled: {Key} {Schedule}", jobKey, trigger.GetNextFireTimeUtc());
+            LogJobScheduled(_logger, jobKey, trigger.GetNextFireTimeUtc());
         }
 
         private ITrigger CreateTrigger(RecurringSchedule schedule, IJobDetail jobDetail, TriggerKey triggerKey)

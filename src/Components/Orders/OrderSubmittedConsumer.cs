@@ -6,8 +6,26 @@ using Microsoft.Extensions.Logging;
 
 namespace EverythingMessages.Components.Orders
 {
-    public class OrderSubmittedConsumer : IConsumer<OrderSubmitted>
+    public partial class OrderSubmittedConsumer : IConsumer<OrderSubmitted>
     {
+        [LoggerMessage(0, LogLevel.Information, "OrderSubmittedConsumer.Consume - RT: {retryAttempt} / RD: {RedeliveryCount}")]
+        private static partial void LogRetry(ILogger logger, int retryAttempt, int redeliveryCount);
+
+        [LoggerMessage(1, LogLevel.Information, "Processed order submission on {RedeliveryCount} redelivery: {Id}")]
+        private static partial void LogRetryProcessed(ILogger logger, int redeliveryCount, string id);
+
+        [LoggerMessage(2, LogLevel.Information, "Processed order submission: {Id}")]
+        private static partial void LogProcessedOrder(ILogger logger, string id);
+
+        [LoggerMessage(3, LogLevel.Information, "Processing order submission: {Id}")]
+        private static partial void LogProcessingOrder(ILogger logger, string id);
+
+        [LoggerMessage(4, LogLevel.Warning, "Attempting for the {retryAttempt} time to process order submission: {Id}")]
+        private static partial void LogRetryAttempt(ILogger logger, int retryAttempt, string id);
+
+        [LoggerMessage(5, LogLevel.Error, "Customer {customerId} is unlucky.")]
+        private static partial void LogUnluckyCustomer(ILogger logger, string customerId);
+
         private readonly ILogger<OrderSubmittedConsumer> _logger;
 
         public OrderSubmittedConsumer(ILogger<OrderSubmittedConsumer> logger)
@@ -20,32 +38,31 @@ namespace EverythingMessages.Components.Orders
             var retryAttempt = context.GetRetryAttempt();
             var RedeliveryCount = context.GetRedeliveryCount();
 
-            _logger.Log(LogLevel.Information, "OrderSubmittedConsumer.Consume - RT: {retryAttempt} / RD: {RedeliveryCount}", retryAttempt, RedeliveryCount);
+            LogRetry(_logger, retryAttempt, RedeliveryCount);
 
             // Fake it ...
-            _logger.Log(LogLevel.Information, "Processing order submission: {Id}", context.Message.Id);
+            LogProcessingOrder(_logger, context.Message.Id);
             if (retryAttempt > 0)
             {
-                _logger.Log(LogLevel.Warning, "Attempting for the {retryAttempt} time to process order submission: {Id}", retryAttempt, context.Message.Id);
+                LogRetryAttempt(_logger, retryAttempt, context.Message.Id);
             }
             if (context.Message.CustomerId?.Contains("RETRY", StringComparison.InvariantCultureIgnoreCase) ?? false)
             {
                 if (RedeliveryCount > 4)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
-                    _logger.Log(LogLevel.Information, "Processed order submission on {RedeliveryCount} redelivery: {Id}", RedeliveryCount, context.Message.Id);
+                    LogRetryProcessed(_logger, RedeliveryCount, context.Message.Id);
                 }
                 else
                 {
-                    var errorMessage = $"Customer {context.Message.CustomerId} is unlucky.";
-                    _logger.Log(LogLevel.Error, errorMessage);
-                    throw new ApplicationException(errorMessage);
+                    LogUnluckyCustomer(_logger, context.Message.CustomerId);
+                    throw new ApplicationException($"Customer {context.Message.CustomerId} is unlucky.");
                 }
             }
             else
             {
                 await Task.Delay(TimeSpan.FromSeconds(7)).ConfigureAwait(false);
-                _logger.Log(LogLevel.Information, "Processed order submission: {Id}", context.Message.Id);
+                LogProcessedOrder(_logger, context.Message.Id);
             }
         }
     }

@@ -6,8 +6,11 @@ namespace Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AppStateController : ControllerBase
+    public partial class AppStateController : ControllerBase
     {
+        [LoggerMessage(0, LogLevel.Debug, "Called {action} from {controller}.")]
+        private static partial void LogActionDetails(ILogger logger, string action, string controller);
+
         private readonly ILogger<AppStateController> _logger;
 
         public AppStateController(ILogger<AppStateController> logger)
@@ -18,7 +21,7 @@ namespace Api.Controllers
         [HttpGet]
         public string Get()
         {
-            _logger.LogDebug("Called {action} from {controller}.", nameof(AppStateController.Get), nameof(AppStateController));
+            LogActionDetails(_logger, nameof(AppStateController.Get), nameof(AppStateController));
             return $"{HttpStatusCode.OK:D} - {HttpStatusCode.OK:G}";
         }
     }

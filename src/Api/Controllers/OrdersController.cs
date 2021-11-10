@@ -13,8 +13,11 @@ namespace EverythingMessages.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class OrdersController : ControllerBase
+    public partial class OrdersController : ControllerBase
     {
+        [LoggerMessage(0, LogLevel.Information, "Created order {id}")]
+        private static partial void LogOrderCreaton(ILogger logger, string id);
+
         private static readonly Random s_random = new();
         private readonly ILogger<DocumentStoreController> _logger;
         private readonly IDocumentStore _store;
@@ -88,7 +91,7 @@ namespace EverythingMessages.Api.Controllers
                          *  the exchange the message will be LOST!
                          */
                         await _publishEndpoint.Publish(order).ConfigureAwait(false);
-                        _logger.LogInformation("Created order {id}", id);
+                        LogOrderCreaton(_logger, id);
                         return Accepted(Url.Action("GET", "DocumentStore", new { id }));
                     }
                 default:
@@ -107,7 +110,7 @@ namespace EverythingMessages.Api.Controllers
                         var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri(queue)).ConfigureAwait(false);
 
                         await endpoint.Send(order).ConfigureAwait(false);
-                        _logger.LogInformation("Created order {id}", id);
+                        LogOrderCreaton(_logger, id);
                         return Accepted(Url.Action("GET", "DocumentStore", new { id }));
                     }
             }

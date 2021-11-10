@@ -6,10 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace EverythingMessages.Components.Notifications
 {
-    public class SendEmailNotificationConsumer : IConsumer<SendEmailNotification>
+    public partial class SendEmailNotificationConsumer : IConsumer<SendEmailNotification>
     {
         private readonly ILogger<SendEmailNotificationConsumer> _logger;
         private readonly Random _rng = new Random();
+
+        [LoggerMessage(0, LogLevel.Information, "[{date}] Sending e-mail notification: {content}")]
+        private static partial void LogEmailContent(ILogger logger, DateTime date, string content);
 
         public SendEmailNotificationConsumer(ILogger<SendEmailNotificationConsumer> logger) => _logger = logger;
 
@@ -17,7 +20,7 @@ namespace EverythingMessages.Components.Notifications
         {
             if (context.Message.EmailAddress.StartsWith(_rng.Next(1, 10000).ToString("F0"), StringComparison.InvariantCultureIgnoreCase))
             {
-                _logger.LogInformation($"[{DateTime.UtcNow:O}] Sending e-mail notification: {context.Message.Body}");
+                LogEmailContent(_logger, DateTime.UtcNow, context.Message.Body);
             }
 
             return Task.CompletedTask;

@@ -9,10 +9,16 @@ using Quartz;
 
 namespace EverythingMessages.Scheduler.Quartz
 {
-    public class ScheduledMessageJob :
+    public partial class ScheduledMessageJob :
         IJob,
         SerializedMessage
     {
+        [LoggerMessage(0, LogLevel.Debug, "Schedule Executed: {key} {schedule}")]
+        private static partial void LogScheduleExecuted(ILogger logger, JobKey key, DateTimeOffset? schedule);
+
+        [LoggerMessage(1, LogLevel.Error, "Failed to send scheduled message, type: {messageType}, destination: {destinationAddress}")]
+        private static partial void LogFailure(ILogger logger, string messageType, string destinationAddress);
+
         private readonly IBus _bus;
         private readonly ILogger<ScheduledMessageJob> _logger;
 
@@ -39,12 +45,11 @@ namespace EverythingMessages.Scheduler.Quartz
                 var scheduled = new Scheduled();
 
                 await endpoint.Send(scheduled, sendPipe, context.CancellationToken).ConfigureAwait(false);
-
-                _logger.LogDebug("Schedule Executed: {Key} {Schedule}", context.JobDetail.Key, context.Trigger.GetNextFireTimeUtc());
+                LogScheduleExecuted(_logger, context.JobDetail.Key, context.Trigger.GetNextFireTimeUtc());
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send scheduled message, type: {MessageType}, destination: {DestinationAddress}", MessageType, Destination);
+                LogFailure(_logger, MessageType, Destination);
 
                 throw new JobExecutionException(ex, context.RefireCount < 5);
             }

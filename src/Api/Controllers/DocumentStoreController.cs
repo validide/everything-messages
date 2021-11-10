@@ -10,8 +10,11 @@ namespace EverythingMessages.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class DocumentStoreController : ControllerBase
+    public partial class DocumentStoreController : ControllerBase
     {
+        [LoggerMessage(0, LogLevel.Information, "Created document {id}")]
+        private static partial void LogDocumentCreaton(ILogger logger, string id);
+
         private static readonly Random s_random = new();
         private readonly ILogger<DocumentStoreController> _logger;
         private readonly IDocumentStore _store;
@@ -47,7 +50,7 @@ namespace EverythingMessages.Api.Controllers
             s_random.NextBytes(data);
 
             var id = await _store.StoreAsync(data, CancellationToken.None).ConfigureAwait(false);
-            _logger.LogInformation("Created document {id}", id);
+            LogDocumentCreaton(_logger, id);
             return Accepted(Url.Action("GET", "DocumentStore", new { id }));
         }
 

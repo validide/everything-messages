@@ -6,9 +6,11 @@ using Microsoft.Extensions.Logging;
 
 namespace EverythingMessages.Components.Notifications
 {
-    public class OrderNotificationsConsumer: IConsumer<OrderSubmitted>
+    public partial class OrderNotificationsConsumer: IConsumer<OrderSubmitted>
     {
         private readonly ILogger<OrderNotificationsConsumer> _logger;
+        [LoggerMessage(0, LogLevel.Information, "Order {Id} submission was successfully processed.")]
+        private static partial void LogOrderSubmission(ILogger logger, string id);
 
         public OrderNotificationsConsumer(ILogger<OrderNotificationsConsumer> logger)
         {
@@ -17,7 +19,7 @@ namespace EverythingMessages.Components.Notifications
 
         public async Task Consume(ConsumeContext<OrderSubmitted> context)
         {
-            _logger.Log(LogLevel.Information, "Order {Id} submission was successfully processed.", context.Message.Id);
+            LogOrderSubmission(_logger, context.Message.Id);
             await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 
         }
