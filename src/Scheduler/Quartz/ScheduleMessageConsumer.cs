@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using EverythingMessages.Scheduler.Quartz.Configuration;
 using MassTransit;
 using MassTransit.Scheduling;
-using MassTransit.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

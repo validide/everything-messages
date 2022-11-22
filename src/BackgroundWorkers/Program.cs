@@ -3,14 +3,12 @@ using MassTransit;
 using Serilog;
 using Serilog.Events;
 using System;
-using MassTransit.Definition;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using EverythingMessages.Infrastructure.DocumentStore;
 using EverythingMessages.Components.Orders;
 using EverythingMessages.Infrastructure;
 using Microsoft.Extensions.Configuration;
-using EverythingMessages.Infrastructure.MessageBus;
 using EverythingMessages.Components.Notifications;
 using EverythingMessages.BackgroundWorkers;
 
@@ -52,19 +50,18 @@ namespace EverythingMessages.Api
                 {
                     var epConfig = hostContext.Configuration.Get<EndpointConfigurationOptions>();
                     services.AddSingleton(epConfig);
-                    var schedulerEndpoint = String.IsNullOrEmpty(epConfig.SchedulerQueue)
-                        ? null
-                        : new Uri($"queue:{epConfig.SchedulerQueue}");
+                    services.AddOptions<MassTransitHostOptions>()
+                        .Configure(options => options.WaitUntilStarted = epConfig.WaitBusStart);
 
                     var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
                     var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
                     var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
                     services.TryAddSingleton(nameFormatter);
                     services.AddMassTransit(mt =>
-                    {
-                        if (schedulerEndpoint != null)
+                    {                
+                        if (!String.IsNullOrEmpty(epConfig.SchedulerQueue))
                         {
-                            mt.AddMessageScheduler(schedulerEndpoint);
+                            mt.AddMessageScheduler(epConfig.SchedulerQueue);
                         }
 
                         mt.AddConsumer<SubmitOrderConsumer, SubmitOrderConsumerDefinition>();
@@ -76,9 +73,9 @@ namespace EverythingMessages.Api
                             cfg.Host(messageBrokerHost);
                             cfg.ConfigureEndpoints(ctx);
 
-                            if (schedulerEndpoint != null)
+                            if (!String.IsNullOrEmpty(epConfig.SchedulerQueue))
                             {
-                                cfg.UseMessageScheduler(schedulerEndpoint);
+                                cfg.UseMessageScheduler(epConfig.SchedulerQueue);
                             }
                         });
                     });
@@ -90,7 +87,6 @@ namespace EverythingMessages.Api
                         Url = $"mongodb://{documentStoreHost}:27017"
                     });
                     services.AddScoped<IDocumentStore, MongoDocumentStore>();
-                    services.AddHostedService<MassTransitHostedService>();
                     if (epConfig.Name.Contains("SCHEDULED_MESSAGE_PRODUCER", StringComparison.InvariantCultureIgnoreCase))
                     {
                         services.AddHostedService<ScheduledMessagesProducerHostedService>();

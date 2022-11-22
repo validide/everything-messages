@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using GreenPipes;
 using MassTransit;
 using MassTransit.Serialization;
 using Microsoft.Extensions.Logging;

@@ -1,7 +1,6 @@
 ﻿using System;
 using EverythingMessages.Infrastructure;
 using MassTransit;
-using MassTransit.Definition;
 
 namespace EverythingMessages.Components.Notifications
 {

@@ -1,9 +1,6 @@
 ﻿using System;
 using EverythingMessages.Infrastructure;
-using GreenPipes;
 using MassTransit;
-using MassTransit.ConsumeConfigurators;
-using MassTransit.Definition;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EverythingMessages.Components.Orders

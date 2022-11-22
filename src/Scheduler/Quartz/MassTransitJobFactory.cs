@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using GreenPipes.Internals.Extensions;
-using GreenPipes.Internals.Reflection;
 using MassTransit;
 using MassTransit.Metadata;
 using Microsoft.Extensions.Logging;

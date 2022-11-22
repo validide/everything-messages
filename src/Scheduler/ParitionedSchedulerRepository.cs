@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using EverythingMessages.Scheduler.Configuration;
 using EverythingMessages.Scheduler.Quartz;
-using GreenPipes.Partitioning;
 using MassTransit;
+using MassTransit.Middleware;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using Quartz.Impl;

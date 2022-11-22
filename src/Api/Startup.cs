@@ -4,7 +4,6 @@ using EverythingMessages.Components.Notifications;
 using EverythingMessages.Contracts.Orders;
 using EverythingMessages.Infrastructure;
 using MassTransit;
-using MassTransit.Definition;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -58,8 +57,6 @@ namespace EverythingMessages.Api
                 options.Delay = TimeSpan.FromSeconds(2);
                 options.Predicate = check => check.Tags.Contains("ready");
             });
-
-            services.AddMassTransitHostedService(epOptions.WaitBusStart);
 
             services
                 .AddControllers()

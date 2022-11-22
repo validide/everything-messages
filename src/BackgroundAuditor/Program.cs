@@ -3,14 +3,12 @@ using MassTransit;
 using Serilog;
 using Serilog.Events;
 using System;
-using MassTransit.Definition;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using EverythingMessages.Infrastructure.DocumentStore;
 using EverythingMessages.Components.Auditing;
 using EverythingMessages.Infrastructure;
 using Microsoft.Extensions.Configuration;
-using EverythingMessages.Infrastructure.MessageBus;
 
 namespace EverythingMessages.BackgroundAuditor
 {
@@ -48,7 +46,10 @@ namespace EverythingMessages.BackgroundAuditor
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddSingleton(hostContext.Configuration.Get<EndpointConfigurationOptions>());
+                    var epOptions = hostContext.Configuration.Get<EndpointConfigurationOptions>();
+                    services.AddSingleton(epOptions);
+                    services.AddOptions<MassTransitHostOptions>()
+                        .Configure(options => options.WaitUntilStarted = epOptions.WaitBusStart);
 
                     var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
                     var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
@@ -71,7 +72,6 @@ namespace EverythingMessages.BackgroundAuditor
                         Url = $"mongodb://{documentStoreHost}:27017"
                     });
                     services.AddScoped<IDocumentStore, MongoDocumentStore>();
-                    services.AddHostedService<MassTransitHostedService>();
                 });
     }
 }

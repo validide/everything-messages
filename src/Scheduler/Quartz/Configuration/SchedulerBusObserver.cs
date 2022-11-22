@@ -35,14 +35,12 @@ namespace EverythingMessages.Scheduler.Quartz.Configuration
             return _schedulerRepository;
         }
 
-        public Task PostCreate(IBus bus)
+        public void PostCreate(IBus bus)
         {
-            return Task.CompletedTask;
         }
 
-        public Task CreateFaulted(Exception exception)
+        public void CreateFaulted(Exception exception)
         {
-            return Task.CompletedTask;
         }
 
         public Task PreStart(IBus bus)

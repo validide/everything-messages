@@ -1,13 +1,11 @@
 ﻿using System;
 using EverythingMessages.Infrastructure;
-using EverythingMessages.Infrastructure.MessageBus;
 using EverythingMessages.Scheduler.Configuration;
 using EverythingMessages.Scheduler.Definitions;
 using EverythingMessages.Scheduler.Quartz;
 using EverythingMessages.Scheduler.Quartz.Configuration;
-using GreenPipes.Partitioning;
 using MassTransit;
-using MassTransit.Definition;
+using MassTransit.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -53,7 +51,10 @@ namespace EverythingMessages.Scheduler
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddSingleton(hostContext.Configuration.Get<EndpointConfigurationOptions>());
+                    var epOptions = hostContext.Configuration.Get<EndpointConfigurationOptions>();
+                    services.AddSingleton(epOptions);
+                    services.AddOptions<MassTransitHostOptions>()
+                        .Configure(options => options.WaitUntilStarted = epOptions.WaitBusStart);
                     services.AddSingleton(hostContext.Configuration.GetSection("Quartz").Get<QuartzOptions>());
 
                     var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
@@ -88,7 +89,6 @@ namespace EverythingMessages.Scheduler
 
                     services.AddSingleton<SchedulerBusObserver>();
                     services.AddSingleton<QuartzEndpointDefinition>();
-                    services.AddHostedService<MassTransitHostedService>();
                 });
     }
 }

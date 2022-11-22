@@ -2,7 +2,6 @@
 using System.Collections.Specialized;
 using System.Text;
 using EverythingMessages.Infrastructure;
-using MassTransit.Transports.InMemory;
 using Microsoft.Extensions.Logging;
 
 namespace EverythingMessages.Scheduler.Configuration
@@ -23,10 +22,6 @@ namespace EverythingMessages.Scheduler.Configuration
             if (String.IsNullOrWhiteSpace(queueName))
             {
                 queueName = "quartz";
-            }
-            else if (Uri.IsWellFormedUriString(queueName, UriKind.Absolute))
-            {
-                queueName = new Uri(queueName).GetQueueOrExchangeName();
             }
 
             Queue = queueName;

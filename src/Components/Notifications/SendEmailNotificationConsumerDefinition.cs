@@ -1,5 +1,5 @@
 ﻿using EverythingMessages.Infrastructure;
-using MassTransit.Definition;
+using MassTransit;
 
 namespace EverythingMessages.Components.Notifications
 {

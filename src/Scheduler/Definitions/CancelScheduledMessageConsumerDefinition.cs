@@ -1,8 +1,5 @@
 ﻿using EverythingMessages.Scheduler.Quartz;
-using GreenPipes;
 using MassTransit;
-using MassTransit.ConsumeConfigurators;
-using MassTransit.Definition;
 using MassTransit.Scheduling;
 
 namespace EverythingMessages.Scheduler.Definitions
