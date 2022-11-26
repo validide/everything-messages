@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit" Version="8.0.8" />
+    <PackageReference Include="MassTransit.Quartz" Version="8.0.8" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.8" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
