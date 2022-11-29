@@ -22,7 +22,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       EM_Name: API
       EM_WaitBusStart: 'true'
-    scale: 2 # just so we have multiple
+    deploy:
+        replicas: 2 # just so we have multiple
     depends_on:
       - message-broker
       - document-store
@@ -35,10 +36,12 @@ services:
     restart: unless-stopped #always
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      EM_Name: WORKER #_SCHEDULED_MESSAGE_PRODUCER
+      EM_Name: WORKER
+      #EM_Name: WORKER_SCHEDULED_MESSAGE_PRODUCER
       EM_SchedulerQueue: default_scheduler
       EM_WaitBusStart: 'true'
-    scale: 2 # just so we have multiple
+    deploy:
+        replicas: 2 # just so we have multiple
     depends_on:
       - message-broker
       - document-store
@@ -53,7 +56,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       EM_Name: AUDITOR
       EM_WaitBusStart: 'true'
-    scale: 5 # just so we have multiple
+    deploy:
+        replicas: 5 # just so we have multiple
     depends_on:
       - message-broker
       - document-store
@@ -70,22 +74,22 @@ services:
       EM_SchedulerQueue: default_scheduler
       EM_ConcurrentMessageLimit: 100
       EM_WaitBusStart: 'true'
-      EM_Quartz__InstanceName: DEFAULT_SCHEDULER
-      EM_Quartz__PartitionCount: 16
-      EM_Quartz__Provider: Npgsql
-      EM_Quartz__DriverDelegateType: Quartz.Impl.AdoJobStore.PostgreSQLDelegate, Quartz
-      EM_Quartz__ConnectionString: Server=scheduler-db-store;Port=5432;Database=quartznet_db;User Id=quartznet_u;Password=quartznet_p;Maximum Pool Size=1000;Timeout=30
-      EM_Quartz__ThreadCount: 50
-      EM_Quartz__EnableBatching: 'false'
-      EM_Quartz__BatchSize: 200
-      EM_Quartz__BatchHasten: 1000
-    scale: 5 # just so we have multiple
+      EM_SchedulerOptions__InstanceName: DEFAULT_SCHEDULER
+      EM_SchedulerOptions__Provider: Npgsql
+      EM_SchedulerOptions__DriverDelegateType: Quartz.Impl.AdoJobStore.PostgreSQLDelegate, Quartz
+      EM_SchedulerOptions__ConnectionString: Server=scheduler-db-store;Port=5432;Database=quartznet_db;User Id=quartznet_u;Password=quartznet_p;Maximum Pool Size=1000;Timeout=30
+      EM_SchedulerOptions__ConcurrencyMultiplier: 2.5
+      EM_SchedulerOptions__EnableBatching: 'false'
+      EM_SchedulerOptions__BatchSize: 200
+      EM_SchedulerOptions__BatchHasten: 1000
+    deploy:
+        replicas: 5 # just so we have multiple
     depends_on:
       - message-broker
       - scheduler-db-store
 
   message-broker:
-    image: rabbitmq:3.8.17-management-alpine
+    image: rabbitmq:3.11.4-management-alpine
     healthcheck:
       timeout: 5s
       interval: 5s

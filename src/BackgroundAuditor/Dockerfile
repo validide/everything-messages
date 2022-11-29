@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0-bullseye-slim AS build
 WORKDIR /src
 COPY ["BackgroundAuditor/BackgroundAuditor.csproj", "BackgroundAuditor/"]
 COPY ["Contracts/Contracts.csproj", "Contracts/"]
