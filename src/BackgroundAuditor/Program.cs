@@ -2,7 +2,6 @@
 using MassTransit;
 using Serilog;
 using Serilog.Events;
-using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using EverythingMessages.Infrastructure.DocumentStore;
@@ -14,10 +13,6 @@ namespace EverythingMessages.BackgroundAuditor;
 
 internal static class Program
 {
-    private static bool? s_isRunningInContainer;
-    internal static bool IsRunningInContainer =>
-        s_isRunningInContainer ??= Boolean.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer) && inContainer;
-
     internal static void Main(string[] args)
     {
         CreateHostBuilder(args).Build().Run();
@@ -46,13 +41,11 @@ internal static class Program
             })
             .ConfigureServices((hostContext, services) =>
             {
-                var epOptions = hostContext.Configuration.Get<EndpointConfigurationOptions>();
+                var epOptions = hostContext.Configuration.Get<EndpointConfigurationOptions>()!;
                 services.AddSingleton(epOptions);
                 services.AddOptions<MassTransitHostOptions>()
                     .Configure(options => options.WaitUntilStarted = epOptions.WaitBusStart);
 
-                var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
-                var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
                 var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
                 services.TryAddSingleton(nameFormatter);
                 services.AddMassTransit(mt =>
@@ -61,7 +54,7 @@ internal static class Program
 
                     mt.UsingRabbitMq((ctx, cfg) =>
                     {
-                        cfg.Host(messageBrokerHost);
+                        cfg.Host(epOptions.GetMessageBrokerEndpoint());
                         cfg.ConfigureEndpoints(ctx);
                     });
                 });
@@ -69,7 +62,7 @@ internal static class Program
                 {
                     Collection = "message-data",
                     Database = "short-term-storage",
-                    Url = $"mongodb://{documentStoreHost}:27017"
+                    Url = epOptions.GetDocumentStoreEndpoint()
                 });
                 services.AddScoped<IDocumentStore, MongoDocumentStore>();
             });

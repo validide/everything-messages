@@ -15,10 +15,6 @@ namespace EverythingMessages.BackgroundWorkers;
 
 internal static class Program
 {
-    private static bool? s_isRunningInContainer;
-    internal static bool IsRunningInContainer =>
-        s_isRunningInContainer ??= Boolean.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer) && inContainer;
-
     internal static void Main(string[] args)
     {
         CreateHostBuilder(args).Build().Run();
@@ -47,7 +43,7 @@ internal static class Program
             })
             .ConfigureServices((hostContext, services) =>
             {
-                var epConfig = hostContext.Configuration.Get<EndpointConfigurationOptions>();
+                var epConfig = hostContext.Configuration.Get<EndpointConfigurationOptions>()!;
                 services.AddSingleton(epConfig);
                 services.AddOptions<MassTransitHostOptions>()
                     .Configure(options => options.WaitUntilStarted = epConfig.WaitBusStart);
@@ -56,8 +52,6 @@ internal static class Program
                     ? null
                     : new Uri($"queue:{epConfig.SchedulerQueue}");
 
-                var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
-                var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
                 var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
                 services.TryAddSingleton(nameFormatter);
                 services.AddMassTransit(mt =>
@@ -73,7 +67,7 @@ internal static class Program
 
                     mt.UsingRabbitMq((ctx, cfg) =>
                     {
-                        cfg.Host(messageBrokerHost);
+                        cfg.Host(epConfig.GetMessageBrokerEndpoint());
                         cfg.ConfigureEndpoints(ctx);
 
                         if (schedulerEndpoint != null)
@@ -87,7 +81,7 @@ internal static class Program
                 {
                     Collection = "message-data",
                     Database = "short-term-storage",
-                    Url = $"mongodb://{documentStoreHost}:27017"
+                    Url = epConfig.GetDocumentStoreEndpoint()
                 });
                 services.AddScoped<IDocumentStore, MongoDocumentStore>();
                 if (epConfig.Name.Contains("SCHEDULED_MESSAGE_PRODUCER", StringComparison.InvariantCultureIgnoreCase))

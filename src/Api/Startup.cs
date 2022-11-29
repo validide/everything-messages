@@ -18,31 +18,25 @@ namespace EverythingMessages.Api;
 
 public class Startup
 {
-    private static bool? s_isRunningInContainer;
     public IConfiguration Configuration { get; }
     public Startup(IConfiguration configuration)
     {
         Configuration = configuration;
     }
 
-    public static bool IsRunningInContainer =>
-        s_isRunningInContainer ??= Boolean.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer) && inContainer;
-
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        var epOptions = Configuration.Get<EndpointConfigurationOptions>();
+        var epOptions = Configuration.Get<EndpointConfigurationOptions>()!;
         services.AddSingleton(epOptions);
 
-        var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
-        var documentStoreHost = IsRunningInContainer ? "document-store" : "localhost";
         var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
         services.TryAddSingleton(nameFormatter);
         services.AddMassTransit(mt =>
         {
             mt.UsingRabbitMq((ctx, cfg) =>
             {
-                cfg.Host(messageBrokerHost);
+                cfg.Host(epOptions.GetMessageBrokerEndpoint());
                 cfg.ConfigureEndpoints(ctx);
             });
 
@@ -65,7 +59,7 @@ public class Startup
             {
                 Collection = "message-data",
                 Database = "short-term-storage",
-                Url = $"mongodb://{documentStoreHost}:27017"
+                Url = epOptions.GetDocumentStoreEndpoint()
             })
             .AddScoped<IDocumentStore, MongoDocumentStore>()
             .AddOpenApiDocument(cfg => cfg.PostProcess = d => d.Info.Title = "HTTP API V1");
@@ -82,7 +76,7 @@ public class Startup
         app.UseOpenApi(cfg => {
             cfg.PostProcess = (doc, _) =>
             {
-                if (IsRunningInContainer)
+                if (serviceProvider.GetRequiredService<EndpointConfigurationOptions>().InContainer)
                 {
                     doc.Host = "localhost:7000"; // we are passing through API gateway
                 }
@@ -109,6 +103,7 @@ public class Startup
             });
         });
 
-        serviceProvider.GetService<ILogger<Startup>>().LogInformation("API Started: {isDevelopment}/{environmentName}.", env.IsDevelopment(), env.EnvironmentName);
+        serviceProvider.GetRequiredService<ILogger<Startup>>()
+            .LogInformation("API Started: {isDevelopment}/{environmentName}.", env.IsDevelopment(), env.EnvironmentName);
     }
 }

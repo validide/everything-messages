@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Configuration;
+using System.Collections.Specialized;
 using EverythingMessages.Infrastructure;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
@@ -14,10 +14,6 @@ namespace EverythingMessages.Scheduler;
 
 internal static class Program
 {
-    private static bool? s_isRunningInContainer;
-    internal static bool IsRunningInContainer =>
-        s_isRunningInContainer ??= Boolean.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer) && inContainer;
-
     internal static void Main(string[] args)
     {
         CreateHostBuilder(args).Build().Run();
@@ -46,7 +42,7 @@ internal static class Program
             })
             .ConfigureServices((hostContext, services) =>
             {
-                var epOptions = hostContext.Configuration.Get<EndpointConfigurationOptions>();
+                var epOptions = hostContext.Configuration.Get<EndpointConfigurationOptions>()!;
                 services.AddSingleton(epOptions);
                 services.AddOptions<MassTransitHostOptions>()
                     .Configure(options => options.WaitUntilStarted = epOptions.WaitBusStart);
@@ -55,13 +51,48 @@ internal static class Program
                     ? null
                     : new Uri($"queue:{epOptions.SchedulerQueue}");
 
-                services
-                    .Configure<QuartzOptions>(hostContext.Configuration.GetSection("Quartz"))
-                    // https://github.com/quartznet/quartznet/blob/v3.5.0/src/Quartz.Extensions.DependencyInjection/ServiceCollectionExtensions.cs#L80
-                    .AddSingleton<ISchedulerFactory, ServiceCollectionSchedulerFactory>()
-                    .AddQuartz(q => q.UseMicrosoftDependencyInjectionJobFactory());
+                var schedulerOptions = hostContext.Configuration.GetSection("SchedulerOptions").Get<SchedulerOptions>()!;
+                services.AddSingleton(schedulerOptions);
 
-                var messageBrokerHost = IsRunningInContainer ? "message-broker" : "localhost";
+                var instanceName = schedulerOptions.InstanceName ?? "MassTransit-Scheduler";
+                var maxConcurrency = Environment.ProcessorCount * schedulerOptions.ConcurrencyMultiplier;
+                var quartzOptions = new NameValueCollection
+                {
+                    {"quartz.scheduler.instanceName", instanceName},
+                    {"quartz.scheduler.instanceId", "AUTO"},
+                    {"quartz.plugin.timeZoneConverter.type", "Quartz.Plugin.TimeZoneConverter.TimeZoneConverterPlugin, Quartz.Plugins.TimeZoneConverter"},
+                    {"quartz.serializer.type", "json"},
+                    {"quartz.threadPool.maxConcurrency", maxConcurrency.ToString("F0")},
+                    {"quartz.jobStore.misfireThreshold", "30000"},
+                    {"quartz.jobStore.maxMisfiresToHandleAtATime", (maxConcurrency / 2).ToString("F0")},
+                    {"quartz.jobStore.driverDelegateType", schedulerOptions.DriverDelegateType},
+                    {"quartz.jobStore.tablePrefix", schedulerOptions.TablePrefix ?? "QRTZ_"},
+                    {"quartz.jobStore.clustered", $"{schedulerOptions.Clustered ?? true}"},
+                    {"quartz.jobStore.type", "Quartz.Impl.AdoJobStore.JobStoreTX, Quartz"},
+                    {"quartz.jobStore.useProperties", "true"},
+                    {"quartz.jobStore.dataSource", "default"},
+                    {"quartz.dataSource.default.provider", schedulerOptions.Provider},
+                    {"quartz.dataSource.default.connectionString", schedulerOptions.ConnectionString}
+                };
+
+                if (schedulerOptions.EnableBatching ?? false)
+                {
+                    quartzOptions.Add(new NameValueCollection
+                    {
+                        {"quartz.jobStore.acquireTriggersWithinLock", "true"},
+                        {"quartz.scheduler.batchTriggerAcquisitionMaxCount", schedulerOptions.BatchSize.ToString("F0")},
+                        {"quartz.scheduler.batchTriggerAcquisitionFireAheadTimeWindow", schedulerOptions.BatchHasten.ToString("F0")}
+                    });
+                }
+
+                services
+                    .AddQuartz(quartzOptions, q => q.UseMicrosoftDependencyInjectionJobFactory())
+                    .AddQuartzHostedService(options =>
+                    {
+                        // when shutting down we want jobs to complete gracefully
+                        options.WaitForJobsToComplete = true;
+                    });
+
                 var nameFormatter = SnakeCaseEndpointNameFormatter.Instance;
                 services.TryAddSingleton(nameFormatter);
                 services.AddMassTransit(mt =>
@@ -72,12 +103,16 @@ internal static class Program
                     }
 
                     mt.AddPublishMessageScheduler();
-                    mt.AddQuartzConsumers();
+                    mt.AddQuartzConsumers(opt =>
+                    {
+                        opt.QueueName = epOptions.SchedulerQueue;
+                        opt.PrefetchCount = 64;
+                    });
 
 
                     mt.UsingRabbitMq((ctx, cfg) =>
                     {
-                        cfg.Host(messageBrokerHost);
+                        cfg.Host(epOptions.GetMessageBrokerEndpoint());
                         cfg.UsePublishMessageScheduler();
                         cfg.ConfigureEndpoints(ctx);
                     });
